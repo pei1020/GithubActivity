@@ -1,0 +1,13 @@
+version: '2'
+services:
+  activity:
+    image: activity
+
+  ng:
+    ports:
+     - "8888:8888"
+    image: ng
+    links:
+     - activity
+
+   

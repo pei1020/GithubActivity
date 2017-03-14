@@ -23,21 +23,26 @@ public class GithubQuerier {
         List<JSONObject> response = getEvents(user);
         StringBuilder sb = new StringBuilder();
         sb.append("<div>");
-        int i = 0;
-        for (JSONObject event : response) {
+        for (int i = 0; i < response.size(); i++) {
+            JSONObject event = response.get(i);
+            // Get event type
             String type = event.getString("type");
-            String dateStr = event.getString("created_at");
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'");
-            Date date = sdf.parse(dateStr);
+            // Get created_at date, and format it in a more pleasant style
+            String creationDate = event.getString("created_at");
+            SimpleDateFormat inFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'");
             SimpleDateFormat outFormat = new SimpleDateFormat("dd MMM, yyyy");
+            Date date = inFormat.parse(creationDate);
             String formatted = outFormat.format(date);
 
+            // Add type of event as header
             sb.append("<h3 class=\"type\">");
             sb.append(type);
             sb.append("</h3>");
+            // Add formatted date
             sb.append(" on ");
             sb.append(formatted);
             sb.append("<br />");
+            // Add collapsible JSON textbox (don't worry about this for the homework; it's just a nice CSS thing I like)
             sb.append("<a data-toggle=\"collapse\" href=\"#event-" + i + "\">JSON</a>");
             sb.append("<div id=event-" + i + " class=\"collapse\" style=\"height: auto;\"> <pre>");
             sb.append(event.toString());
