@@ -12,12 +12,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Created by Vincent on 10/1/2017.
- */
 public class GithubQuerier {
 
     private static final String BASE_URL = "https://api.github.com/users/";
+    private static final String base = "https://github.com/";
 
     public static String eventsAsHTML(String user) throws IOException, ParseException {
         List<JSONObject> response = getEvents(user);
@@ -33,7 +31,20 @@ public class GithubQuerier {
             SimpleDateFormat outFormat = new SimpleDateFormat("dd MMM, yyyy");
             Date date = inFormat.parse(creationDate);
             String formatted = outFormat.format(date);
+            JSONObject repo = event.getJSONObject("repo");
+            String name = repo.getString("name");
+            String url = repo.getString("url");
+            JSONObject payload = event.getJSONObject("payload");
+            JSONArray array = payload.getJSONArray("commits");
+            String sha ="";
+            String msg ="";
+            for(int j = 0; j <array.length(); j++){
+                JSONObject obj = array.getJSONObject(j);
+                sha = obj.getString("sha");
+                msg = obj.getString("message");
+            }
 
+            String neatsha = sha.substring(0, Math.min(sha.length(), 8));
             // Add type of event as header
             sb.append("<h3 class=\"type\">");
             sb.append(type);
@@ -41,6 +52,17 @@ public class GithubQuerier {
             // Add formatted date
             sb.append(" on ");
             sb.append(formatted);
+            sb.append("<br />");
+            sb.append("<a href =");
+            sb.append(base);
+            sb.append(name);
+            sb.append(">");
+            sb.append(name);
+            sb.append("</a>");
+            sb.append("<br />");
+            sb.append(neatsha);
+            sb.append("<br />");
+            sb.append(msg);
             sb.append("<br />");
             // Add collapsible JSON textbox (don't worry about this for the homework; it's just a nice CSS thing I like)
             sb.append("<a data-toggle=\"collapse\" href=\"#event-" + i + "\">JSON</a>");
@@ -59,8 +81,12 @@ public class GithubQuerier {
         JSONObject json = Util.queryAPI(new URL(url));
         System.out.println(json);
         JSONArray events = json.getJSONArray("root");
-        for (int i = 0; i < events.length() && i < 10; i++) {
-            eventList.add(events.getJSONObject(i));
+        int count = 0;
+        for (int i = 0; (i < events.length()) && (count < 10); i++) {
+            if (events.getJSONObject(i).get("type").equals("PushEvent")) {
+                eventList.add(events.getJSONObject(i));
+                count++;
+            }
         }
         return eventList;
     }
